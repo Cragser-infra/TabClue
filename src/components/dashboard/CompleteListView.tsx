@@ -6,6 +6,7 @@ interface CompleteListViewProps {
   tabs: TabItem[];
   selectedIds: Set<string>;
   bookmarkStatus: Map<string, boolean>;
+  showFavicons?: boolean;
   onToggleSelect: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (tab: TabItem) => void;
@@ -16,6 +17,7 @@ export function CompleteListView({
   tabs,
   selectedIds,
   bookmarkStatus,
+  showFavicons,
   onToggleSelect,
   onDelete,
   onEdit,
@@ -36,6 +38,7 @@ export function CompleteListView({
       items={tabs}
       selectedIds={selectedIds}
       bookmarkStatus={bookmarkStatus}
+      showFavicons={showFavicons}
       onToggleSelect={onToggleSelect}
       onDelete={onDelete}
       onEdit={onEdit}

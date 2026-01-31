@@ -8,10 +8,11 @@ import type { MostVisitedItem } from '@/types/tab';
 
 interface MostVisitedViewProps {
   items: MostVisitedItem[];
+  showFavicons?: boolean;
   onOpen: (url: string) => void;
 }
 
-export function MostVisitedView({ items, onOpen }: MostVisitedViewProps) {
+export function MostVisitedView({ items, showFavicons = true, onOpen }: MostVisitedViewProps) {
   const { t } = useTranslation('dashboard');
 
   if (items.length === 0) {
@@ -30,7 +31,7 @@ export function MostVisitedView({ items, onOpen }: MostVisitedViewProps) {
             key={item.url}
             className="group flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors"
           >
-            <FaviconImage url={item.url} favIconUrl={item.favIconUrl} className="h-4 w-4 shrink-0" />
+            <FaviconImage url={item.url} favIconUrl={item.favIconUrl} className="h-4 w-4 shrink-0" visible={showFavicons} />
 
             <div className="flex-1 min-w-0">
               <button

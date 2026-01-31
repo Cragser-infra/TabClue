@@ -5,7 +5,10 @@
   "version": "0.1.0",
   "type": "module",
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "spawn-sync"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "spawn-sync"
+    ]
   },
   "scripts": {
     "dev": "wxt",
@@ -34,7 +37,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.0",
+    "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@types/chrome": "^0.0.304",

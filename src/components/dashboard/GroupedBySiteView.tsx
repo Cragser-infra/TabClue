@@ -10,10 +10,11 @@ import type { DomainGroup } from '@/types/tab';
 
 interface GroupedBySiteViewProps {
   groups: DomainGroup[];
+  showFavicons?: boolean;
   onOpen: (url: string) => void;
 }
 
-export function GroupedBySiteView({ groups, onOpen }: GroupedBySiteViewProps) {
+export function GroupedBySiteView({ groups, showFavicons = true, onOpen }: GroupedBySiteViewProps) {
   const { t } = useTranslation('dashboard');
   const [collapsedDomains, setCollapsedDomains] = useState<Set<string>>(new Set());
 
@@ -58,6 +59,7 @@ export function GroupedBySiteView({ groups, onOpen }: GroupedBySiteViewProps) {
                   url={`https://${group.domain}`}
                   favIconUrl={group.favIconUrl}
                   className="h-4 w-4 mr-2 shrink-0"
+                  visible={showFavicons}
                 />
                 <span className="text-sm font-medium">{group.domain}</span>
                 <Badge variant="secondary" className="ml-auto">

@@ -8,6 +8,7 @@ export interface SettingsProps {
   showCloseConfirmation: boolean;
   defaultTagId: string;
   virtualScrollThreshold: number;
+  showFavicons: boolean;
 }
 
 export const DEFAULT_SETTINGS: SettingsProps = {
@@ -17,4 +18,5 @@ export const DEFAULT_SETTINGS: SettingsProps = {
   showCloseConfirmation: true,
   defaultTagId: 'staging-area',
   virtualScrollThreshold: 100,
+  showFavicons: false,
 };

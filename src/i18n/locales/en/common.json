@@ -29,5 +29,9 @@
   "copyUrl": "Copy URL",
   "urlCopied": "URL copied!",
   "bookmarked": "Bookmarked",
-  "notBookmarked": "Not bookmarked"
+  "notBookmarked": "Not bookmarked",
+  "showFavicons": "Show website favicons",
+  "showFaviconsDescription": "Display the favicon next to each tab. Disable for a cleaner reading experience.",
+  "settingsTitle": "Settings",
+  "display": "Display"
 }

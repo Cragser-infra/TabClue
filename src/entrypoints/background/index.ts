@@ -97,6 +97,15 @@ async function checkBookmarkStatus(urls: string[]): Promise<Record<string, boole
 }
 
 export default defineBackground(() => {
+  // Left-click on the extension icon: save all tabs, open dashboard, close saved tabs
+  chrome.action.onClicked.addListener(async (_tab) => {
+    const result = await handleSaveAllTabs();
+    if (result.success) {
+      await handleOpenDashboard();
+      await handleCloseTabs(result.tabIds);
+    }
+  });
+
   chrome.runtime.onMessage.addListener(
     (message: RuntimeMessage, _sender, sendResponse) => {
       switch (message.type) {
@@ -120,7 +129,11 @@ export default defineBackground(() => {
 
   chrome.commands.onCommand.addListener(async (command) => {
     if (command === 'save-all-tabs') {
-      await handleSaveAllTabs();
+      const result = await handleSaveAllTabs();
+      if (result.success) {
+        await handleOpenDashboard();
+        await handleCloseTabs(result.tabIds);
+      }
     }
   });
 

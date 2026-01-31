@@ -11,6 +11,7 @@ interface ContentHeaderProps {
   onToggleSelectAll: () => void;
   onDeleteSelected: () => void;
   onOpenSelected: () => void;
+  showSelection?: boolean;
 }
 
 export function ContentHeader({
@@ -21,6 +22,7 @@ export function ContentHeader({
   onToggleSelectAll,
   onDeleteSelected,
   onOpenSelected,
+  showSelection = true,
 }: ContentHeaderProps) {
   const { t } = useTranslation();
 
@@ -33,29 +35,31 @@ export function ContentHeader({
         </span>
       </div>
 
-      <div className="flex items-center gap-2">
-        {selectedCount > 0 && (
-          <>
-            <span className="text-sm text-muted-foreground">
-              {t('selected', { count: selectedCount })}
+      {showSelection && (
+        <div className="flex items-center gap-2">
+          {selectedCount > 0 && (
+            <>
+              <span className="text-sm text-muted-foreground">
+                {t('selected', { count: selectedCount })}
+              </span>
+              <Button variant="ghost" size="sm" onClick={onOpenSelected}>
+                <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                {t('openSelected')}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onDeleteSelected} className="text-destructive">
+                <Trash2 className="h-3.5 w-3.5 mr-1" />
+                {t('deleteSelected')}
+              </Button>
+            </>
+          )}
+          <div className="flex items-center gap-1.5">
+            <Checkbox checked={allSelected && tabCount > 0} onCheckedChange={onToggleSelectAll} />
+            <span className="text-xs text-muted-foreground">
+              {allSelected ? t('deselectAll') : t('selectAll')}
             </span>
-            <Button variant="ghost" size="sm" onClick={onOpenSelected}>
-              <ExternalLink className="h-3.5 w-3.5 mr-1" />
-              {t('openSelected')}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onDeleteSelected} className="text-destructive">
-              <Trash2 className="h-3.5 w-3.5 mr-1" />
-              {t('deleteSelected')}
-            </Button>
-          </>
-        )}
-        <div className="flex items-center gap-1.5">
-          <Checkbox checked={allSelected && tabCount > 0} onCheckedChange={onToggleSelectAll} />
-          <span className="text-xs text-muted-foreground">
-            {allSelected ? t('deselectAll') : t('selectAll')}
-          </span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

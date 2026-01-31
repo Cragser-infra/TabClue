@@ -5,98 +5,157 @@ import { useTabSelection } from '@/hooks/useTabSelection';
 import { useMostVisited } from '@/hooks/useMostVisited';
 import { useGroupedBySite } from '@/hooks/useGroupedBySite';
 import { useBookmarkCheck } from '@/hooks/useBookmarkCheck';
-import { tagListStorage } from '@/storage';
-import { AppSidebar } from '@/components/layout/AppSidebar';
+import { tagListStorage, settingsStorage } from '@/storage';
+import type { SettingsProps } from '@/types/settings';
+import {
+  AppSidebar,
+  type SessionSidebarItem,
+  type SiteSidebarItem,
+  type RankSidebarItem,
+} from '@/components/layout/AppSidebar';
 import { ContentHeader } from '@/components/layout/ContentHeader';
 import { DashboardTabs, type DashboardView } from '@/components/dashboard/DashboardTabs';
 import { MostVisitedView } from '@/components/dashboard/MostVisitedView';
 import { GroupedBySiteView } from '@/components/dashboard/GroupedBySiteView';
 import { CompleteListView } from '@/components/dashboard/CompleteListView';
 import { TabEditDialog } from '@/components/tabs/TabEditDialog';
-import type { TagItem, TabItem } from '@/types/tab';
+import { SettingsDialog } from '@/components/settings/SettingsDialog';
+import type { TabItem } from '@/types/tab';
 
 export default function App() {
   const { t } = useTranslation();
   const { value: tags, isLoading } = useStorage(tagListStorage);
+  const { value: settings } = useStorage(settingsStorage);
 
   const [activeView, setActiveView] = useState<DashboardView>('complete-list');
-  const [selectedTagId, setSelectedTagId] = useState<string | null>('staging-area');
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [editingTab, setEditingTab] = useState<TabItem | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Sidebar selections per view
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [selectedSite, setSelectedSite] = useState<string | null>(null);
+  const [selectedRank, setSelectedRank] = useState<string | null>(null);
 
   const { selectedIds, toggle, selectAll, deselectAll, isAllSelected } = useTabSelection();
 
-  // Get the currently visible tabs based on selection
-  const currentTabs = useMemo(() => {
-    if (!tags) return [];
-    if (selectedGroupId) {
-      for (const tag of tags) {
-        const group = tag.groups.find((g) => g.id === selectedGroupId);
-        if (group) return group.tabs;
-      }
-      return [];
-    }
-    if (selectedTagId) {
-      const tag = tags.find((t) => t.id === selectedTagId);
-      if (tag) return tag.groups.flatMap((g) => g.tabs);
-    }
-    return tags.flatMap((tag) => tag.groups.flatMap((g) => g.tabs));
-  }, [tags, selectedTagId, selectedGroupId]);
-
-  // All tabs for computed views
+  // All tabs flat
   const allTabs = useMemo(
     () => tags?.flatMap((tag) => tag.groups.flatMap((g) => g.tabs)) ?? [],
     [tags]
   );
 
-  const mostVisited = useMostVisited(tags);
+  // --- Sidebar data ---
+
+  // Sessions for "Complete List"
+  const sessions: SessionSidebarItem[] = useMemo(() => {
+    if (!tags) return [];
+    return tags.flatMap((tag) =>
+      tag.groups.map((g) => ({
+        id: g.id,
+        label: g.name,
+        count: g.tabs.length,
+      }))
+    );
+  }, [tags]);
+
+  // Sites for "Grouped by Site"
   const groupedBySite = useGroupedBySite(tags);
-
-  // Bookmark check for visible tabs
-  const visibleUrls = useMemo(() => currentTabs.slice(0, 50).map((t) => t.url), [currentTabs]);
-  const bookmarkStatus = useBookmarkCheck(visibleUrls);
-
-  // Current title
-  const currentTitle = useMemo(() => {
-    if (!tags) return '';
-    if (selectedGroupId) {
-      for (const tag of tags) {
-        const group = tag.groups.find((g) => g.id === selectedGroupId);
-        if (group) return group.name;
-      }
-    }
-    if (selectedTagId) {
-      const tag = tags.find((t) => t.id === selectedTagId);
-      if (tag) return tag.name;
-    }
-    return t('dashboard:completeList');
-  }, [tags, selectedTagId, selectedGroupId, t]);
-
-  const handleToggleCollapse = useCallback(
-    async (tagId: string) => {
-      if (!tags) return;
-      const updated = tags.map((tag) =>
-        tag.id === tagId ? { ...tag, isCollapsed: !tag.isCollapsed } : tag
-      );
-      await tagListStorage.setValue(updated);
-    },
-    [tags]
+  const sidebarSites: SiteSidebarItem[] = useMemo(
+    () =>
+      groupedBySite.map((g) => ({
+        domain: g.domain,
+        count: g.totalCount,
+        favIconUrl: g.favIconUrl,
+      })),
+    [groupedBySite]
   );
 
-  const handleSelectGroup = useCallback((tagId: string, groupId: string) => {
-    setSelectedTagId(tagId);
-    setSelectedGroupId(groupId);
-    setActiveView('complete-list');
-    deselectAll();
-  }, [deselectAll]);
+  // Most visited + rank tiers
+  const mostVisited = useMostVisited(tags);
+  const ranks: RankSidebarItem[] = useMemo(() => {
+    const total = mostVisited.length;
+    if (total === 0) return [];
+    const tiers: RankSidebarItem[] = [];
+    if (total > 0) tiers.push({ id: 'top-10', label: 'Top 10', range: [0, 10], count: Math.min(total, 10) });
+    if (total > 10) tiers.push({ id: 'top-25', label: 'Top 11–25', range: [10, 25], count: Math.min(total - 10, 15) });
+    if (total > 25) tiers.push({ id: 'top-50', label: 'Top 26–50', range: [25, 50], count: Math.min(total - 25, 25) });
+    if (total > 50) tiers.push({ id: 'rest', label: '50+', range: [50, total], count: total - 50 });
+    return tiers;
+  }, [mostVisited]);
 
-  const handleSelectTag = useCallback((tagId: string) => {
-    setSelectedTagId(tagId);
-    setSelectedGroupId(null);
-    deselectAll();
-  }, [deselectAll]);
+  // --- Filtered content per view ---
+
+  // Complete list: filter by session
+  const completeListTabs = useMemo(() => {
+    if (!tags) return [];
+    if (selectedSessionId === null) return allTabs;
+    for (const tag of tags) {
+      const group = tag.groups.find((g) => g.id === selectedSessionId);
+      if (group) return group.tabs;
+    }
+    return [];
+  }, [tags, allTabs, selectedSessionId]);
+
+  // Grouped by site: filter by domain
+  const filteredGroupedBySite = useMemo(() => {
+    if (selectedSite === null) return groupedBySite;
+    return groupedBySite.filter((g) => g.domain === selectedSite);
+  }, [groupedBySite, selectedSite]);
+
+  // Most visited: filter by rank tier
+  const filteredMostVisited = useMemo(() => {
+    if (selectedRank === null) return mostVisited;
+    const rank = ranks.find((r) => r.id === selectedRank);
+    if (!rank) return mostVisited;
+    return mostVisited.slice(rank.range[0], rank.range[1]);
+  }, [mostVisited, selectedRank, ranks]);
+
+  // The tabs shown in the current view (for header count and select all)
+  const displayTabs = useMemo(() => {
+    switch (activeView) {
+      case 'complete-list':
+        return completeListTabs;
+      case 'grouped-by-site':
+        return filteredGroupedBySite.flatMap((g) => g.tabs);
+      case 'most-visited':
+        return []; // most visited shows MostVisitedItem, not TabItem
+    }
+  }, [activeView, completeListTabs, filteredGroupedBySite]);
+
+  // Bookmark check for visible tabs
+  const visibleUrls = useMemo(() => completeListTabs.slice(0, 50).map((t) => t.url), [completeListTabs]);
+  const bookmarkStatus = useBookmarkCheck(visibleUrls);
+
+  // Current title based on sidebar selection
+  const currentTitle = useMemo(() => {
+    switch (activeView) {
+      case 'complete-list':
+        if (selectedSessionId) {
+          const session = sessions.find((s) => s.id === selectedSessionId);
+          return session?.label ?? t('dashboard:completeList');
+        }
+        return t('dashboard:completeList');
+      case 'grouped-by-site':
+        return selectedSite ?? t('dashboard:groupedBySite');
+      case 'most-visited':
+        if (selectedRank) {
+          const rank = ranks.find((r) => r.id === selectedRank);
+          return rank?.label ?? t('dashboard:mostVisited');
+        }
+        return t('dashboard:mostVisited');
+    }
+  }, [activeView, selectedSessionId, selectedSite, selectedRank, sessions, ranks, t]);
+
+  // Reset sidebar selection when switching views
+  const handleChangeView = useCallback(
+    (view: DashboardView) => {
+      setActiveView(view);
+      deselectAll();
+    },
+    [deselectAll]
+  );
 
   const handleOpenTab = useCallback((url: string) => {
     if (typeof chrome !== 'undefined' && chrome.tabs) {
@@ -159,18 +218,26 @@ export default function App() {
   }, [tags, selectedIds, deselectAll]);
 
   const handleOpenSelected = useCallback(() => {
-    const tabsToOpen = currentTabs.filter((t) => selectedIds.has(t.id));
+    const tabsToOpen = displayTabs.filter((t) => selectedIds.has(t.id));
     tabsToOpen.forEach((tab) => handleOpenTab(tab.url));
-  }, [currentTabs, selectedIds, handleOpenTab]);
+  }, [displayTabs, selectedIds, handleOpenTab]);
+
+  const handleUpdateSettings = useCallback(
+    async (patch: Partial<SettingsProps>) => {
+      if (!settings) return;
+      await settingsStorage.setValue({ ...settings, ...patch });
+    },
+    [settings]
+  );
 
   const handleToggleSelectAll = useCallback(() => {
-    const allIds = currentTabs.map((t) => t.id);
+    const allIds = displayTabs.map((t) => t.id);
     if (isAllSelected(allIds)) {
       deselectAll();
     } else {
       selectAll(allIds);
     }
-  }, [currentTabs, isAllSelected, deselectAll, selectAll]);
+  }, [displayTabs, isAllSelected, deselectAll, selectAll]);
 
   if (isLoading) {
     return (
@@ -180,46 +247,52 @@ export default function App() {
     );
   }
 
-  const displayTabs = activeView === 'complete-list' ? currentTabs : allTabs;
-
   return (
     <div className="flex h-screen bg-background">
       <AppSidebar
-        tags={tags ?? []}
-        selectedGroupId={selectedGroupId}
-        selectedTagId={selectedTagId}
-        onSelectGroup={handleSelectGroup}
-        onSelectTag={handleSelectTag}
-        onToggleCollapse={handleToggleCollapse}
+        activeView={activeView}
+        sessions={sessions}
+        selectedSessionId={selectedSessionId}
+        onSelectSession={(id) => { setSelectedSessionId(id); deselectAll(); }}
+        sites={sidebarSites}
+        selectedSite={selectedSite}
+        onSelectSite={(domain) => { setSelectedSite(domain); deselectAll(); }}
+        ranks={ranks}
+        selectedRank={selectedRank}
+        onSelectRank={(id) => { setSelectedRank(id); deselectAll(); }}
         collapsed={sidebarCollapsed}
         onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+        showFavicons={settings?.showFavicons ?? false}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
         <ContentHeader
           title={currentTitle}
-          tabCount={displayTabs.length}
+          tabCount={activeView === 'most-visited' ? filteredMostVisited.length : displayTabs.length}
           selectedCount={selectedIds.size}
-          allSelected={isAllSelected(currentTabs.map((t) => t.id))}
+          allSelected={displayTabs.length > 0 && isAllSelected(displayTabs.map((t) => t.id))}
           onToggleSelectAll={handleToggleSelectAll}
           onDeleteSelected={handleDeleteSelected}
           onOpenSelected={handleOpenSelected}
+          showSelection={activeView === 'complete-list'}
         />
 
-        <DashboardTabs activeView={activeView} onChangeView={setActiveView} />
+        <DashboardTabs activeView={activeView} onChangeView={handleChangeView} />
 
         <div className="flex-1 overflow-hidden">
           {activeView === 'most-visited' && (
-            <MostVisitedView items={mostVisited} onOpen={handleOpenTab} />
+            <MostVisitedView items={filteredMostVisited} showFavicons={settings?.showFavicons ?? false} onOpen={handleOpenTab} />
           )}
           {activeView === 'grouped-by-site' && (
-            <GroupedBySiteView groups={groupedBySite} onOpen={handleOpenTab} />
+            <GroupedBySiteView groups={filteredGroupedBySite} showFavicons={settings?.showFavicons ?? false} onOpen={handleOpenTab} />
           )}
           {activeView === 'complete-list' && (
             <CompleteListView
-              tabs={currentTabs}
+              tabs={completeListTabs}
               selectedIds={selectedIds}
               bookmarkStatus={bookmarkStatus}
+              showFavicons={settings?.showFavicons ?? false}
               onToggleSelect={toggle}
               onDelete={handleDeleteTab}
               onEdit={handleEditTab}
@@ -238,6 +311,15 @@ export default function App() {
         }}
         onSave={handleSaveEdit}
       />
+
+      {settings && (
+        <SettingsDialog
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          settings={settings}
+          onUpdateSettings={handleUpdateSettings}
+        />
+      )}
     </div>
   );
 }

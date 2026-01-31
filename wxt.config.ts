@@ -13,6 +13,9 @@ export default defineConfig({
       'unlimitedStorage',
       'bookmarks',
     ],
+    action: {
+      default_title: 'TabClue',
+    },
     commands: {
       'save-all-tabs': {
         suggested_key: {

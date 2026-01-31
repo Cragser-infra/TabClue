@@ -5,10 +5,13 @@ interface FaviconImageProps {
   url: string;
   favIconUrl?: string;
   className?: string;
+  visible?: boolean;
 }
 
-export function FaviconImage({ url, favIconUrl, className = 'h-4 w-4' }: FaviconImageProps) {
+export function FaviconImage({ url, favIconUrl, className = 'h-4 w-4', visible = true }: FaviconImageProps) {
   const [error, setError] = useState(false);
+
+  if (!visible) return null;
 
   const src = (() => {
     if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {

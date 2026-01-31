@@ -29,5 +29,9 @@
   "copyUrl": "Copiar URL",
   "urlCopied": "¡URL copiada!",
   "bookmarked": "En marcadores",
-  "notBookmarked": "No está en marcadores"
+  "notBookmarked": "No está en marcadores",
+  "showFavicons": "Mostrar favicons de los sitios",
+  "showFaviconsDescription": "Muestra el favicon junto a cada pestaña. Desactívalo para una lectura más limpia.",
+  "settingsTitle": "Configuración",
+  "display": "Visualización"
 }

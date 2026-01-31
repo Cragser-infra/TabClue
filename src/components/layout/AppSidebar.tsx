@@ -3,13 +3,12 @@ import { useTranslation } from 'react-i18next';
 import {
   ChevronRight,
   ChevronDown,
-  Folder,
-  FolderOpen,
   Layers,
   Search,
   Settings,
   Globe,
-  Plus,
+  Clock,
+  Trophy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -17,59 +16,89 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import type { TagItem } from '@/types/tab';
+import { FaviconImage } from '@/components/common/FaviconImage';
+import type { DashboardView } from '@/components/dashboard/DashboardTabs';
+import type { GroupItem, MostVisitedItem, DomainGroup } from '@/types/tab';
+
+// --- Sidebar item types per view ---
+
+export interface SessionSidebarItem {
+  id: string;
+  label: string;
+  count: number;
+}
+
+export interface SiteSidebarItem {
+  domain: string;
+  count: number;
+  favIconUrl?: string;
+}
+
+export interface RankSidebarItem {
+  id: string;
+  label: string;
+  range: [number, number]; // [from, to] indices
+  count: number;
+}
 
 interface AppSidebarProps {
-  tags: TagItem[];
-  selectedGroupId: string | null;
-  selectedTagId: string | null;
-  onSelectGroup: (tagId: string, groupId: string) => void;
-  onSelectTag: (tagId: string) => void;
-  onToggleCollapse: (tagId: string) => void;
+  activeView: DashboardView;
+  // Complete list data
+  sessions: SessionSidebarItem[];
+  selectedSessionId: string | null;
+  onSelectSession: (id: string | null) => void;
+  // Grouped by site data
+  sites: SiteSidebarItem[];
+  selectedSite: string | null;
+  onSelectSite: (domain: string | null) => void;
+  // Most visited data
+  ranks: RankSidebarItem[];
+  selectedRank: string | null;
+  onSelectRank: (id: string | null) => void;
+  // Common
   collapsed: boolean;
   onToggleSidebar: () => void;
+  showFavicons: boolean;
+  onOpenSettings: () => void;
 }
 
 export function AppSidebar({
-  tags,
-  selectedGroupId,
-  selectedTagId,
-  onSelectGroup,
-  onSelectTag,
-  onToggleCollapse,
+  activeView,
+  sessions,
+  selectedSessionId,
+  onSelectSession,
+  sites,
+  selectedSite,
+  onSelectSite,
+  ranks,
+  selectedRank,
+  onSelectRank,
   collapsed,
   onToggleSidebar,
+  showFavicons,
+  onOpenSettings,
 }: AppSidebarProps) {
   const { t, i18n } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
-
-  const filteredTags = useMemo(() => {
-    if (!searchQuery.trim()) return tags;
-    const q = searchQuery.toLowerCase();
-    return tags
-      .map((tag) => ({
-        ...tag,
-        groups: tag.groups.filter(
-          (g) =>
-            g.name.toLowerCase().includes(q) ||
-            g.tabs.some(
-              (tab) =>
-                tab.title.toLowerCase().includes(q) ||
-                tab.url.toLowerCase().includes(q)
-            )
-        ),
-      }))
-      .filter(
-        (tag) =>
-          tag.name.toLowerCase().includes(q) || tag.groups.length > 0
-      );
-  }, [tags, searchQuery]);
 
   const toggleLanguage = () => {
     const next = i18n.language === 'en' ? 'es' : 'en';
     i18n.changeLanguage(next);
     localStorage.setItem('tabclue-language', next);
   };
+
+  // Filter items based on search
+  const filteredSessions = useMemo(() => {
+    if (!searchQuery.trim()) return sessions;
+    const q = searchQuery.toLowerCase();
+    return sessions.filter((s) => s.label.toLowerCase().includes(q));
+  }, [sessions, searchQuery]);
+
+  const filteredSites = useMemo(() => {
+    if (!searchQuery.trim()) return sites;
+    const q = searchQuery.toLowerCase();
+    return sites.filter((s) => s.domain.toLowerCase().includes(q));
+  }, [sites, searchQuery]);
 
   if (collapsed) {
     return (
@@ -81,20 +110,6 @@ export function AppSidebar({
         >
           <Layers className="h-5 w-5" />
         </button>
-        <Separator />
-        {tags.map((tag) => (
-          <button
-            key={tag.id}
-            onClick={() => onSelectTag(tag.id)}
-            className={cn(
-              'p-2 rounded-md hover:bg-sidebar-accent',
-              selectedTagId === tag.id && 'bg-sidebar-accent'
-            )}
-            title={tag.name}
-          >
-            <Folder className="h-4 w-4" />
-          </button>
-        ))}
       </aside>
     );
   }
@@ -115,80 +130,48 @@ export function AppSidebar({
             <ChevronRight className="h-4 w-4 rotate-180" />
           </button>
         </div>
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            placeholder={t('sidebar:searchTags')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 h-8 text-xs"
-          />
-        </div>
+        {activeView !== 'most-visited' && (
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder={
+                activeView === 'complete-list'
+                  ? t('sidebar:searchSessions')
+                  : t('sidebar:searchSites')
+              }
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 h-8 text-xs"
+            />
+          </div>
+        )}
       </div>
 
       <Separator />
 
-      {/* Tag Tree */}
+      {/* Contextual content */}
       <ScrollArea className="flex-1 p-2">
-        {filteredTags.length === 0 ? (
-          <p className="text-xs text-muted-foreground px-2 py-4 text-center">
-            {t('sidebar:noTagsFound')}
-          </p>
-        ) : (
-          filteredTags.map((tag) => (
-            <div key={tag.id} className="mb-1">
-              {/* Tag Header */}
-              <button
-                onClick={() => onToggleCollapse(tag.id)}
-                className={cn(
-                  'flex items-center w-full px-2 py-1.5 rounded-md text-sm font-medium hover:bg-sidebar-accent transition-colors',
-                  selectedTagId === tag.id && !selectedGroupId && 'bg-sidebar-accent'
-                )}
-              >
-                {tag.isCollapsed ? (
-                  <ChevronRight className="h-3.5 w-3.5 mr-1 shrink-0" />
-                ) : (
-                  <ChevronDown className="h-3.5 w-3.5 mr-1 shrink-0" />
-                )}
-                {tag.isCollapsed ? (
-                  <Folder className="h-3.5 w-3.5 mr-2 shrink-0 text-muted-foreground" />
-                ) : (
-                  <FolderOpen className="h-3.5 w-3.5 mr-2 shrink-0 text-muted-foreground" />
-                )}
-                <span className="truncate flex-1 text-left">{tag.name}</span>
-                <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0">
-                  {tag.groups.reduce((sum, g) => sum + g.tabs.length, 0)}
-                </Badge>
-              </button>
-
-              {/* Groups */}
-              {!tag.isCollapsed && (
-                <div className="ml-4 mt-0.5 space-y-0.5">
-                  {tag.groups.map((group) => (
-                    <button
-                      key={group.id}
-                      onClick={() => onSelectGroup(tag.id, group.id)}
-                      className={cn(
-                        'flex items-center w-full px-2 py-1 rounded-md text-xs hover:bg-sidebar-accent transition-colors',
-                        selectedGroupId === group.id &&
-                          'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                      )}
-                    >
-                      <span className="truncate flex-1 text-left">{group.name}</span>
-                      <span className="text-muted-foreground ml-2 text-[10px]">
-                        {group.tabs.length}
-                      </span>
-                    </button>
-                  ))}
-                  {tag.groups.length === 0 && (
-                    <p className="text-[10px] text-muted-foreground px-2 py-1 italic">
-                      {t('dashboard:emptyGroup')}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          ))
+        {activeView === 'complete-list' && (
+          <SessionList
+            sessions={filteredSessions}
+            selectedId={selectedSessionId}
+            onSelect={onSelectSession}
+          />
+        )}
+        {activeView === 'grouped-by-site' && (
+          <SiteList
+            sites={filteredSites}
+            selectedDomain={selectedSite}
+            onSelect={onSelectSite}
+            showFavicons={showFavicons}
+          />
+        )}
+        {activeView === 'most-visited' && (
+          <RankList
+            ranks={ranks}
+            selectedId={selectedRank}
+            onSelect={onSelectRank}
+          />
         )}
       </ScrollArea>
 
@@ -200,10 +183,168 @@ export function AppSidebar({
           <Globe className="h-3.5 w-3.5" />
           {i18n.language.toUpperCase()}
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onOpenSettings}>
           <Settings className="h-4 w-4" />
         </Button>
       </div>
     </aside>
+  );
+}
+
+// --- Complete List: sessions ---
+
+function SessionList({
+  sessions,
+  selectedId,
+  onSelect,
+}: {
+  sessions: SessionSidebarItem[];
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="space-y-0.5">
+      {/* "All" option */}
+      <button
+        onClick={() => onSelect(null)}
+        className={cn(
+          'flex items-center w-full px-2 py-1.5 rounded-md text-sm hover:bg-sidebar-accent transition-colors',
+          selectedId === null && 'bg-sidebar-accent font-medium'
+        )}
+      >
+        <Clock className="h-3.5 w-3.5 mr-2 shrink-0 text-muted-foreground" />
+        <span className="flex-1 text-left">{t('sidebar:allSessions')}</span>
+      </button>
+
+      {sessions.map((session) => (
+        <button
+          key={session.id}
+          onClick={() => onSelect(session.id)}
+          className={cn(
+            'flex items-center w-full px-2 py-1.5 rounded-md text-xs hover:bg-sidebar-accent transition-colors',
+            selectedId === session.id && 'bg-sidebar-accent font-medium'
+          )}
+        >
+          <span className="truncate flex-1 text-left">{session.label}</span>
+          <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0">
+            {session.count}
+          </Badge>
+        </button>
+      ))}
+
+      {sessions.length === 0 && (
+        <p className="text-[10px] text-muted-foreground px-2 py-4 text-center italic">
+          {t('sidebar:noResults')}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// --- Grouped by Site: domains ---
+
+function SiteList({
+  sites,
+  selectedDomain,
+  onSelect,
+  showFavicons,
+}: {
+  sites: SiteSidebarItem[];
+  selectedDomain: string | null;
+  onSelect: (domain: string | null) => void;
+  showFavicons: boolean;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="space-y-0.5">
+      {/* "All" option */}
+      <button
+        onClick={() => onSelect(null)}
+        className={cn(
+          'flex items-center w-full px-2 py-1.5 rounded-md text-sm hover:bg-sidebar-accent transition-colors',
+          selectedDomain === null && 'bg-sidebar-accent font-medium'
+        )}
+      >
+        <Globe className="h-3.5 w-3.5 mr-2 shrink-0 text-muted-foreground" />
+        <span className="flex-1 text-left">{t('sidebar:allSites')}</span>
+      </button>
+
+      {sites.map((site) => (
+        <button
+          key={site.domain}
+          onClick={() => onSelect(site.domain)}
+          className={cn(
+            'flex items-center w-full px-2 py-1.5 rounded-md text-xs hover:bg-sidebar-accent transition-colors',
+            selectedDomain === site.domain && 'bg-sidebar-accent font-medium'
+          )}
+        >
+          <FaviconImage
+            url={`https://${site.domain}`}
+            favIconUrl={site.favIconUrl}
+            className="h-3.5 w-3.5 mr-2 shrink-0"
+            visible={showFavicons}
+          />
+          <span className="truncate flex-1 text-left">{site.domain}</span>
+          <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0">
+            {site.count}
+          </Badge>
+        </button>
+      ))}
+
+      {sites.length === 0 && (
+        <p className="text-[10px] text-muted-foreground px-2 py-4 text-center italic">
+          {t('sidebar:noResults')}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// --- Most Visited: rank tiers ---
+
+function RankList({
+  ranks,
+  selectedId,
+  onSelect,
+}: {
+  ranks: RankSidebarItem[];
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="space-y-0.5">
+      {/* "All" option */}
+      <button
+        onClick={() => onSelect(null)}
+        className={cn(
+          'flex items-center w-full px-2 py-1.5 rounded-md text-sm hover:bg-sidebar-accent transition-colors',
+          selectedId === null && 'bg-sidebar-accent font-medium'
+        )}
+      >
+        <Trophy className="h-3.5 w-3.5 mr-2 shrink-0 text-muted-foreground" />
+        <span className="flex-1 text-left">{t('sidebar:allRanks')}</span>
+      </button>
+
+      {ranks.map((rank) => (
+        <button
+          key={rank.id}
+          onClick={() => onSelect(rank.id)}
+          className={cn(
+            'flex items-center w-full px-2 py-1.5 rounded-md text-xs hover:bg-sidebar-accent transition-colors',
+            selectedId === rank.id && 'bg-sidebar-accent font-medium'
+          )}
+        >
+          <span className="truncate flex-1 text-left">{rank.label}</span>
+          <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0">
+            {rank.count}
+          </Badge>
+        </button>
+      ))}
+    </div>
   );
 }

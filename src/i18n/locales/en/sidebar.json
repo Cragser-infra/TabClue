@@ -1,6 +1,10 @@
 {
-  "searchTags": "Search tags and groups...",
-  "noTagsFound": "No tags found",
+  "searchSessions": "Search sessions...",
+  "searchSites": "Search sites...",
+  "allSessions": "All sessions",
+  "allSites": "All sites",
+  "allRanks": "All",
+  "noResults": "No results",
   "newTag": "New tag",
   "renameTag": "Rename tag",
   "deleteTag": "Delete tag",

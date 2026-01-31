@@ -1,6 +1,10 @@
 {
-  "searchTags": "Buscar etiquetas y grupos...",
-  "noTagsFound": "No se encontraron etiquetas",
+  "searchSessions": "Buscar sesiones...",
+  "searchSites": "Buscar sitios...",
+  "allSessions": "Todas las sesiones",
+  "allSites": "Todos los sitios",
+  "allRanks": "Todos",
+  "noResults": "Sin resultados",
   "newTag": "Nueva etiqueta",
   "renameTag": "Renombrar etiqueta",
   "deleteTag": "Eliminar etiqueta",

@@ -7,6 +7,7 @@ interface VirtualizedTabListProps {
   items: TabItem[];
   selectedIds: Set<string>;
   bookmarkStatus: Map<string, boolean>;
+  showFavicons?: boolean;
   onToggleSelect: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (tab: TabItem) => void;
@@ -17,6 +18,7 @@ export function VirtualizedTabList({
   items,
   selectedIds,
   bookmarkStatus,
+  showFavicons,
   onToggleSelect,
   onDelete,
   onEdit,
@@ -58,6 +60,7 @@ export function VirtualizedTabList({
                 tab={tab}
                 isSelected={selectedIds.has(tab.id)}
                 isBookmarked={bookmarkStatus.get(tab.url)}
+                showFavicons={showFavicons}
                 onToggleSelect={() => onToggleSelect(tab.id)}
                 onDelete={() => onDelete(tab.id)}
                 onEdit={() => onEdit(tab)}
