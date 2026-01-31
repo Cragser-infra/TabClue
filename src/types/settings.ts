@@ -9,6 +9,7 @@ export interface SettingsProps {
   defaultTagId: string;
   virtualScrollThreshold: number;
   showFavicons: boolean;
+  displayLimit: number;
 }
 
 export const DEFAULT_SETTINGS: SettingsProps = {
@@ -19,4 +20,5 @@ export const DEFAULT_SETTINGS: SettingsProps = {
   defaultTagId: 'staging-area',
   virtualScrollThreshold: 100,
   showFavicons: false,
+  displayLimit: 50,
 };

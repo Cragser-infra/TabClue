@@ -33,5 +33,14 @@
   "showFavicons": "Mostrar favicons de los sitios",
   "showFaviconsDescription": "Muestra el favicon junto a cada pestaña. Desactívalo para una lectura más limpia.",
   "settingsTitle": "Configuración",
-  "display": "Visualización"
+  "display": "Visualización",
+  "dataManagement": "Datos",
+  "exportData": "Exportar datos",
+  "exportDataDescription": "Descarga todas tus pestañas guardadas y configuración como archivo JSON.",
+  "importData": "Importar datos",
+  "importDataDescription": "Restaura pestañas y configuración desde un archivo JSON exportado previamente.",
+  "importSuccess": "Datos importados correctamente",
+  "importError": "Error al importar datos. El archivo puede ser inválido.",
+  "displayLimit": "Elementos por página",
+  "displayLimitDescription": "Cantidad máxima de elementos a mostrar en cada vista."
 }
