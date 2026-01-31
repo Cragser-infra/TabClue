@@ -12,6 +12,7 @@ export default defineConfig({
       'tabs',
       'unlimitedStorage',
       'bookmarks',
+      'favicon',
     ],
     action: {
       default_title: 'TabClue',
