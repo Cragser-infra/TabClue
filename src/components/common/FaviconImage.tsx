@@ -8,6 +8,14 @@ interface FaviconImageProps {
   useOriginal?: boolean;
 }
 
+function getFaviconUrl(pageUrl: string, favIconUrl?: string): string {
+  if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
+    const base = chrome.runtime.getURL('_favicon/');
+    return `${base}?pageUrl=${encodeURIComponent(pageUrl)}&size=32`;
+  }
+  return favIconUrl || '';
+}
+
 export function FaviconImage({ url, favIconUrl, className = 'h-4 w-4', useOriginal = true }: FaviconImageProps) {
   const [error, setError] = useState(false);
 
@@ -15,12 +23,7 @@ export function FaviconImage({ url, favIconUrl, className = 'h-4 w-4', useOrigin
     return <Globe className={className + ' text-muted-foreground'} />;
   }
 
-  const src = (() => {
-    if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
-      return `chrome://favicon2/?size=16&page_url=${encodeURIComponent(url)}`;
-    }
-    return favIconUrl || '';
-  })();
+  const src = getFaviconUrl(url, favIconUrl);
 
   if (error || !src) {
     return <Globe className={className + ' text-muted-foreground'} />;
