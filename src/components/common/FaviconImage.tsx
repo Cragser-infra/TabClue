@@ -5,13 +5,15 @@ interface FaviconImageProps {
   url: string;
   favIconUrl?: string;
   className?: string;
-  visible?: boolean;
+  useOriginal?: boolean;
 }
 
-export function FaviconImage({ url, favIconUrl, className = 'h-4 w-4', visible = true }: FaviconImageProps) {
+export function FaviconImage({ url, favIconUrl, className = 'h-4 w-4', useOriginal = true }: FaviconImageProps) {
   const [error, setError] = useState(false);
 
-  if (!visible) return null;
+  if (!useOriginal) {
+    return <Globe className={className + ' text-muted-foreground'} />;
+  }
 
   const src = (() => {
     if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {

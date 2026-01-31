@@ -59,7 +59,7 @@ export function GroupedBySiteView({ groups, showFavicons = true, onOpen }: Group
                   url={`https://${group.domain}`}
                   favIconUrl={group.favIconUrl}
                   className="h-4 w-4 mr-2 shrink-0"
-                  visible={showFavicons}
+                  useOriginal={showFavicons}
                 />
                 <span className="text-sm font-medium">{group.domain}</span>
                 <Badge variant="secondary" className="ml-auto">

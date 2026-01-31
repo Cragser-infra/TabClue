@@ -285,7 +285,7 @@ function SiteList({
             url={`https://${site.domain}`}
             favIconUrl={site.favIconUrl}
             className="h-3.5 w-3.5 mr-2 shrink-0"
-            visible={showFavicons}
+            useOriginal={showFavicons}
           />
           <span className="truncate flex-1 text-left">{site.domain}</span>
           <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0">

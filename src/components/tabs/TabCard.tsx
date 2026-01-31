@@ -43,7 +43,7 @@ export function TabCard({
         className="mt-0.5"
       />
 
-      <FaviconImage url={tab.url} favIconUrl={tab.favIconUrl} className="h-4 w-4 mt-0.5 shrink-0" visible={showFavicons} />
+      <FaviconImage url={tab.url} favIconUrl={tab.favIconUrl} className="h-4 w-4 mt-0.5 shrink-0" useOriginal={showFavicons} />
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
