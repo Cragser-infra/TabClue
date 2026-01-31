@@ -1,0 +1,15 @@
+{
+  "saveConfirmTitle": "¡Pestañas guardadas!",
+  "saveConfirmMessage_one": "{{count}} pestaña se ha guardado correctamente.",
+  "saveConfirmMessage_other": "{{count}} pestañas se han guardado correctamente.",
+  "closeTabsQuestion": "¿Deseas cerrar las pestañas guardadas?",
+  "closeTabs": "Cerrar pestañas",
+  "keepOpen": "Mantener abiertas",
+  "editTabTitle": "Editar pestaña",
+  "editTabName": "Título",
+  "editTabUrl": "URL",
+  "deleteConfirmTitle": "Confirmar eliminación",
+  "deleteConfirmMessage": "¿Estás seguro de que quieres eliminar esta pestaña?",
+  "deleteConfirmBulk_one": "¿Estás seguro de que quieres eliminar {{count}} pestaña?",
+  "deleteConfirmBulk_other": "¿Estás seguro de que quieres eliminar {{count}} pestañas?"
+}

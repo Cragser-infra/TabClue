@@ -1,0 +1,11 @@
+{
+  "extensionName": {
+    "message": "TabClue - Tab Manager"
+  },
+  "extensionDescription": {
+    "message": "Save, organize, and manage your browser tabs with one click."
+  },
+  "commandSaveAllTabs": {
+    "message": "Save all open tabs"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "extensionName": {
+    "message": "TabClue - Gestor de pestañas"
+  },
+  "extensionDescription": {
+    "message": "Guarda, organiza y gestiona tus pestañas del navegador con un clic."
+  },
+  "commandSaveAllTabs": {
+    "message": "Guardar todas las pestañas abiertas"
+  }
+}

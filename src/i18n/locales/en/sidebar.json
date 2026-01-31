@@ -1,0 +1,13 @@
+{
+  "searchTags": "Search tags and groups...",
+  "noTagsFound": "No tags found",
+  "newTag": "New tag",
+  "renameTag": "Rename tag",
+  "deleteTag": "Delete tag",
+  "renameGroup": "Rename group",
+  "deleteGroup": "Delete group",
+  "confirmDeleteTag": "Are you sure you want to delete this tag and all its groups?",
+  "confirmDeleteGroup": "Are you sure you want to delete this group and all its tabs?",
+  "collapseAll": "Collapse all",
+  "expandAll": "Expand all"
+}

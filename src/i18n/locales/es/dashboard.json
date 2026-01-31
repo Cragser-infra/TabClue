@@ -1,0 +1,15 @@
+{
+  "mostVisited": "Más visitados",
+  "groupedBySite": "Agrupados por sitio",
+  "completeList": "Lista completa",
+  "emptyState": "No hay pestañas guardadas. ¡Haz clic en el icono de TabClue para guardar tus pestañas!",
+  "emptyGroup": "Este grupo no tiene pestañas.",
+  "visitCount_one": "Visitado {{count}} vez",
+  "visitCount_other": "Visitado {{count}} veces",
+  "tabsInDomain_one": "{{count}} pestaña en {{domain}}",
+  "tabsInDomain_other": "{{count}} pestañas en {{domain}}",
+  "totalTabs_one": "{{count}} pestaña en total",
+  "totalTabs_other": "{{count}} pestañas en total",
+  "domains_one": "{{count}} sitio",
+  "domains_other": "{{count}} sitios"
+}

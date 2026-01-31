@@ -1,0 +1,13 @@
+{
+  "searchTags": "Buscar etiquetas y grupos...",
+  "noTagsFound": "No se encontraron etiquetas",
+  "newTag": "Nueva etiqueta",
+  "renameTag": "Renombrar etiqueta",
+  "deleteTag": "Eliminar etiqueta",
+  "renameGroup": "Renombrar grupo",
+  "deleteGroup": "Eliminar grupo",
+  "confirmDeleteTag": "¿Estás seguro de que quieres eliminar esta etiqueta y todos sus grupos?",
+  "confirmDeleteGroup": "¿Estás seguro de que quieres eliminar este grupo y todas sus pestañas?",
+  "collapseAll": "Colapsar todo",
+  "expandAll": "Expandir todo"
+}

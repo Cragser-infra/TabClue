@@ -1,0 +1,15 @@
+{
+  "mostVisited": "Most Visited",
+  "groupedBySite": "Grouped by Site",
+  "completeList": "Complete List",
+  "emptyState": "No tabs saved yet. Click the TabClue icon to save your open tabs!",
+  "emptyGroup": "This group has no tabs.",
+  "visitCount_one": "Visited {{count}} time",
+  "visitCount_other": "Visited {{count}} times",
+  "tabsInDomain_one": "{{count}} tab in {{domain}}",
+  "tabsInDomain_other": "{{count}} tabs in {{domain}}",
+  "totalTabs_one": "{{count}} tab total",
+  "totalTabs_other": "{{count}} tabs total",
+  "domains_one": "{{count}} site",
+  "domains_other": "{{count}} sites"
+}
