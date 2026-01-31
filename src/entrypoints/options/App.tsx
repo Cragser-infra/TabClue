@@ -112,17 +112,30 @@ export default function App() {
     return mostVisited.slice(rank.range[0], rank.range[1]);
   }, [mostVisited, selectedRank, ranks]);
 
+  const displayLimit = settings?.displayLimit ?? 50;
+
+  // Apply display limit to views
+  const limitedCompleteListTabs = useMemo(
+    () => completeListTabs.slice(0, displayLimit),
+    [completeListTabs, displayLimit]
+  );
+
+  const limitedMostVisited = useMemo(
+    () => filteredMostVisited.slice(0, displayLimit),
+    [filteredMostVisited, displayLimit]
+  );
+
   // The tabs shown in the current view (for header count and select all)
   const displayTabs = useMemo(() => {
     switch (activeView) {
       case 'complete-list':
-        return completeListTabs;
+        return limitedCompleteListTabs;
       case 'grouped-by-site':
-        return filteredGroupedBySite.flatMap((g) => g.tabs);
+        return filteredGroupedBySite.flatMap((g) => g.tabs).slice(0, displayLimit);
       case 'most-visited':
         return []; // most visited shows MostVisitedItem, not TabItem
     }
-  }, [activeView, completeListTabs, filteredGroupedBySite]);
+  }, [activeView, limitedCompleteListTabs, filteredGroupedBySite, displayLimit]);
 
   // Bookmark check for visible tabs
   const visibleUrls = useMemo(() => completeListTabs.slice(0, 50).map((t) => t.url), [completeListTabs]);
@@ -269,7 +282,14 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0">
         <ContentHeader
           title={currentTitle}
-          tabCount={activeView === 'most-visited' ? filteredMostVisited.length : displayTabs.length}
+          tabCount={activeView === 'most-visited' ? limitedMostVisited.length : displayTabs.length}
+          totalCount={
+            activeView === 'most-visited'
+              ? filteredMostVisited.length
+              : activeView === 'complete-list'
+              ? completeListTabs.length
+              : filteredGroupedBySite.flatMap((g) => g.tabs).length
+          }
           selectedCount={selectedIds.size}
           allSelected={displayTabs.length > 0 && isAllSelected(displayTabs.map((t) => t.id))}
           onToggleSelectAll={handleToggleSelectAll}
@@ -282,14 +302,14 @@ export default function App() {
 
         <div className="flex-1 overflow-hidden">
           {activeView === 'most-visited' && (
-            <MostVisitedView items={filteredMostVisited} showFavicons={settings?.showFavicons ?? false} onOpen={handleOpenTab} />
+            <MostVisitedView items={limitedMostVisited} showFavicons={settings?.showFavicons ?? false} onOpen={handleOpenTab} />
           )}
           {activeView === 'grouped-by-site' && (
             <GroupedBySiteView groups={filteredGroupedBySite} showFavicons={settings?.showFavicons ?? false} onOpen={handleOpenTab} />
           )}
           {activeView === 'complete-list' && (
             <CompleteListView
-              tabs={completeListTabs}
+              tabs={limitedCompleteListTabs}
               selectedIds={selectedIds}
               bookmarkStatus={bookmarkStatus}
               showFavicons={settings?.showFavicons ?? false}

@@ -6,6 +6,7 @@ import { Trash2, ExternalLink } from 'lucide-react';
 interface ContentHeaderProps {
   title: string;
   tabCount: number;
+  totalCount?: number;
   selectedCount: number;
   allSelected: boolean;
   onToggleSelectAll: () => void;
@@ -17,6 +18,7 @@ interface ContentHeaderProps {
 export function ContentHeader({
   title,
   tabCount,
+  totalCount,
   selectedCount,
   allSelected,
   onToggleSelectAll,
@@ -32,6 +34,9 @@ export function ContentHeader({
         <h2 className="text-lg font-semibold">{title}</h2>
         <span className="text-sm text-muted-foreground">
           {t('tabs', { count: tabCount })}
+          {totalCount != null && totalCount > tabCount && (
+            <span className="text-muted-foreground/60"> / {totalCount}</span>
+          )}
         </span>
       </div>
 
