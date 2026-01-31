@@ -42,5 +42,8 @@
   "importSuccess": "Datos importados correctamente",
   "importError": "Error al importar datos. El archivo puede ser inválido.",
   "displayLimit": "Elementos por página",
-  "displayLimitDescription": "Cantidad máxima de elementos a mostrar en cada vista."
+  "displayLimitDescription": "Cantidad máxima de elementos a mostrar en cada vista.",
+  "pageOf": "Página {{current}} de {{total}}",
+  "previousPage": "Anterior",
+  "nextPage": "Siguiente"
 }

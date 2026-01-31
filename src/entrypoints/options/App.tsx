@@ -32,6 +32,7 @@ export default function App() {
   const [editingTab, setEditingTab] = useState<TabItem | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Sidebar selections per view
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
@@ -112,30 +113,49 @@ export default function App() {
     return mostVisited.slice(rank.range[0], rank.range[1]);
   }, [mostVisited, selectedRank, ranks]);
 
-  const displayLimit = settings?.displayLimit ?? 50;
+  const pageSize = settings?.displayLimit ?? 50;
 
-  // Apply display limit to views
-  const limitedCompleteListTabs = useMemo(
-    () => completeListTabs.slice(0, displayLimit),
-    [completeListTabs, displayLimit]
+  // Total item count per view (before pagination)
+  const totalItemCount = useMemo(() => {
+    switch (activeView) {
+      case 'complete-list':
+        return completeListTabs.length;
+      case 'grouped-by-site':
+        return filteredGroupedBySite.flatMap((g) => g.tabs).length;
+      case 'most-visited':
+        return filteredMostVisited.length;
+    }
+  }, [activeView, completeListTabs, filteredGroupedBySite, filteredMostVisited]);
+
+  const totalPages = Math.max(1, Math.ceil(totalItemCount / pageSize));
+
+  // Clamp current page if data shrinks
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * pageSize;
+  const pageEnd = safePage * pageSize;
+
+  // Apply pagination to views
+  const paginatedCompleteListTabs = useMemo(
+    () => completeListTabs.slice(pageStart, pageEnd),
+    [completeListTabs, pageStart, pageEnd]
   );
 
-  const limitedMostVisited = useMemo(
-    () => filteredMostVisited.slice(0, displayLimit),
-    [filteredMostVisited, displayLimit]
+  const paginatedMostVisited = useMemo(
+    () => filteredMostVisited.slice(pageStart, pageEnd),
+    [filteredMostVisited, pageStart, pageEnd]
   );
 
   // The tabs shown in the current view (for header count and select all)
   const displayTabs = useMemo(() => {
     switch (activeView) {
       case 'complete-list':
-        return limitedCompleteListTabs;
+        return paginatedCompleteListTabs;
       case 'grouped-by-site':
-        return filteredGroupedBySite.flatMap((g) => g.tabs).slice(0, displayLimit);
+        return filteredGroupedBySite.flatMap((g) => g.tabs).slice(pageStart, pageEnd);
       case 'most-visited':
         return []; // most visited shows MostVisitedItem, not TabItem
     }
-  }, [activeView, limitedCompleteListTabs, filteredGroupedBySite, displayLimit]);
+  }, [activeView, paginatedCompleteListTabs, filteredGroupedBySite, pageStart, pageEnd]);
 
   // Bookmark check for visible tabs
   const visibleUrls = useMemo(() => completeListTabs.slice(0, 50).map((t) => t.url), [completeListTabs]);
@@ -161,10 +181,11 @@ export default function App() {
     }
   }, [activeView, selectedSessionId, selectedSite, selectedRank, sessions, ranks, t]);
 
-  // Reset sidebar selection when switching views
+  // Reset page and selection when switching views
   const handleChangeView = useCallback(
     (view: DashboardView) => {
       setActiveView(view);
+      setCurrentPage(1);
       deselectAll();
     },
     [deselectAll]
@@ -266,13 +287,13 @@ export default function App() {
         activeView={activeView}
         sessions={sessions}
         selectedSessionId={selectedSessionId}
-        onSelectSession={(id) => { setSelectedSessionId(id); deselectAll(); }}
+        onSelectSession={(id) => { setSelectedSessionId(id); setCurrentPage(1); deselectAll(); }}
         sites={sidebarSites}
         selectedSite={selectedSite}
-        onSelectSite={(domain) => { setSelectedSite(domain); deselectAll(); }}
+        onSelectSite={(domain) => { setSelectedSite(domain); setCurrentPage(1); deselectAll(); }}
         ranks={ranks}
         selectedRank={selectedRank}
-        onSelectRank={(id) => { setSelectedRank(id); deselectAll(); }}
+        onSelectRank={(id) => { setSelectedRank(id); setCurrentPage(1); deselectAll(); }}
         collapsed={sidebarCollapsed}
         onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
         showFavicons={settings?.showFavicons ?? false}
@@ -282,14 +303,11 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0">
         <ContentHeader
           title={currentTitle}
-          tabCount={activeView === 'most-visited' ? limitedMostVisited.length : displayTabs.length}
-          totalCount={
-            activeView === 'most-visited'
-              ? filteredMostVisited.length
-              : activeView === 'complete-list'
-              ? completeListTabs.length
-              : filteredGroupedBySite.flatMap((g) => g.tabs).length
-          }
+          tabCount={displayTabs.length}
+          totalCount={totalItemCount}
+          currentPage={safePage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
           selectedCount={selectedIds.size}
           allSelected={displayTabs.length > 0 && isAllSelected(displayTabs.map((t) => t.id))}
           onToggleSelectAll={handleToggleSelectAll}
@@ -302,14 +320,14 @@ export default function App() {
 
         <div className="flex-1 overflow-hidden">
           {activeView === 'most-visited' && (
-            <MostVisitedView items={limitedMostVisited} showFavicons={settings?.showFavicons ?? false} onOpen={handleOpenTab} />
+            <MostVisitedView items={paginatedMostVisited} showFavicons={settings?.showFavicons ?? false} onOpen={handleOpenTab} />
           )}
           {activeView === 'grouped-by-site' && (
             <GroupedBySiteView groups={filteredGroupedBySite} showFavicons={settings?.showFavicons ?? false} onOpen={handleOpenTab} />
           )}
           {activeView === 'complete-list' && (
             <CompleteListView
-              tabs={limitedCompleteListTabs}
+              tabs={paginatedCompleteListTabs}
               selectedIds={selectedIds}
               bookmarkStatus={bookmarkStatus}
               showFavicons={settings?.showFavicons ?? false}

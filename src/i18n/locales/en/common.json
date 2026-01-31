@@ -42,5 +42,8 @@
   "importSuccess": "Data imported successfully",
   "importError": "Failed to import data. The file may be invalid.",
   "displayLimit": "Items per page",
-  "displayLimitDescription": "Maximum number of items to display in each view."
+  "displayLimitDescription": "Maximum number of items to display in each view.",
+  "pageOf": "Page {{current}} of {{total}}",
+  "previousPage": "Previous",
+  "nextPage": "Next"
 }
