@@ -4,3 +4,11 @@ node_modules/
 dist/
 *.log
 .DS_Store
+
+# Chrome Web Store listing assets. Deliberately NOT committed: this repo is
+# public and the screenshots capture a real browser session (personal email,
+# Gmail thread ids, a medical appointment, an insurance portal, a job
+# application). Regenerate from a clean profile before publishing any listing.
+screenshots/
+# CI build artifact
+tabclue.zip
